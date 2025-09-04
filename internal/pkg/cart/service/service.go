@@ -1,7 +1,8 @@
 package service
 
 import (
-	"dacode/OneDrive/Desktop/2706NewProj/internal/pkg/cart/model"
+	"2706NewProj/internal/pkg/cart/model"
+	"2706NewProj/internal/pkg/cart/productClient"
 	"errors"
 	"fmt"
 )
@@ -14,7 +15,7 @@ type CartRepository interface {
 }
 
 type ProductClient interface {
-	GetProductInfo(sku int64) (name string, price uint32, err error)
+	GetProductInfo(sku int64) (*productClient.IItem, error)
 }
 
 type CartService struct {
@@ -33,14 +34,18 @@ func (s *CartService) AddProduct(userID int64, sku int64, count uint16) error {
 	if userID < 1 || sku < 1 {
 		return errors.New("userID and sku must be defined")
 	}
+	_, err := s.productClient.GetProductInfo(sku)
+	if err != nil {
+		return fmt.Errorf("product %d not found in external service: %w", sku, err)
+	}
 	return s.repository.AddProduct(userID, sku, count)
 }
 
-func (s *CartService) DeleteProduct(userID int64, sku int64, count uint16) error {
+func (s *CartService) DeleteProduct(userID int64, sku int64) error {
 	if userID < 1 || sku < 1 {
 		return errors.New("userID and sku must be defined")
 	}
-	return s.repository.DeleteProduct(userID, sku, count)
+	return s.repository.DeleteProduct(userID, sku)
 }
 func (s *CartService) ClearCart(userID int64) error {
 	if userID < 1 {
@@ -60,14 +65,15 @@ func (s *CartService) GetCart(userID int64) (*model.Cart, error) {
 		return nil, err
 	}
 	for i := range cart.Item {
-		name, price, err := s.productClient.GetProductInfo(cart.Item[i].SkuID)
+		var iitem *productClient.IItem
+		iitem, err := s.productClient.GetProductInfo(cart.Item[i].SkuID)
 
 		if err != nil {
 			return nil, fmt.Errorf("failed to get product info: %w", err)
 		}
 
-		cart.Item[i].Name = name
-		cart.Item[i].Price = price
+		cart.Item[i].Name = iitem.Name
+		cart.Item[i].Price = iitem.Price
 
 	}
 
