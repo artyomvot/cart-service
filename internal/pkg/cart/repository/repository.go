@@ -1,11 +1,11 @@
 package repository
 
 import (
-	"2706NewProj/internal/pkg/cart/model"
+	"ProductCartService/internal/pkg/cart/model"
 	"errors"
 )
 
-type Storage = map[int64]model.Cart // ключ - юзерАйДи
+type Storage = map[int64]*model.Cart // ключ - юзерАйДи
 
 type Repository struct {
 	storage Storage
@@ -24,17 +24,16 @@ func (r *Repository) AddProduct(userID int64, sku int64, count uint16) error {
 	}
 	cart, ok := r.storage[userID]
 	if !ok {
-		cart = model.Cart{
+		newcart := model.Cart{
 			UserID: userID,
 			Item:   make(map[int64]*model.Product),
 		}
+		r.storage[userID] = &newcart
+		cart = r.storage[userID]
 	}
-
-	for i := range cart.Item {
-		if cart.Item[i].SkuID == sku {
-			cart.Item[i].Count += count
-			r.storage[userID] = cart
-		}
+	_, ok = cart.Item[sku]
+	if ok {
+		cart.Item[sku].Count += count
 		return nil
 	}
 
@@ -43,7 +42,6 @@ func (r *Repository) AddProduct(userID int64, sku int64, count uint16) error {
 		Count: count,
 	}
 	cart.Item[sku] = &newProduct
-	r.storage[userID] = cart
 	return nil
 }
 
@@ -53,15 +51,15 @@ func (r *Repository) DeleteProduct(userID int64, sku int64) error {
 	}
 	cart, ok := r.storage[userID]
 	if !ok {
-		return errors.New("Unable to remove product from non-existent cart")
+		return nil
 	}
-	for i, _ := range cart.Item {
-		if sku == cart.Item[i].SkuID {
-			delete(cart.Item, i)
-			return nil
-		}
+
+	_, ok = cart.Item[sku]
+	if ok {
+		delete(cart.Item, sku)
+		return nil
 	}
-	return errors.New("Product not found")
+	return nil
 }
 
 func (r *Repository) ClearCart(userID int64) error {
@@ -71,7 +69,7 @@ func (r *Repository) ClearCart(userID int64) error {
 
 	cart, ok := r.storage[userID]
 	if !ok {
-		return errors.New("the cart must exist")
+		return nil
 	}
 
 	cart.Item = make(map[int64]*model.Product)
@@ -87,9 +85,9 @@ func (r *Repository) GetCart(userID int64) (*model.Cart, error) {
 	cart, ok := r.storage[userID]
 
 	if !ok {
-		return nil, errors.New("cart not found")
+		return nil, nil
 	}
 
-	return &cart, nil
+	return cart, nil
 
 }

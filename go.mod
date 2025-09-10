@@ -1,3 +1,3 @@
-module 2706NewProj
+module ProductCartService
 
 go 1.24.3

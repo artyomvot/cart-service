@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"io"
 	"net/http"
 )
 
@@ -32,12 +31,12 @@ func New(baseURL, token string) *Client {
 	}
 }
 
-type IItem struct {
+type Item struct {
 	Name  string `json:"name"`
 	Price uint32 `json:"price"`
 }
 
-func (c *Client) GetProductInfo(sku int64) (*IItem, error) {
+func (c *Client) GetProductInfo(sku int64) (*Item, error) {
 	url := fmt.Sprintf("%s/get_product", c.baseURL)
 
 	requestBody := productRequest{
@@ -70,25 +69,17 @@ func (c *Client) GetProductInfo(sku int64) (*IItem, error) {
 		return nil, fmt.Errorf("product service returned status: %d", resp.StatusCode)
 	}
 
-	body, err := io.ReadAll(resp.Body)
-
-	if err != nil {
-		return nil, fmt.Errorf("failed to read response: %w", err)
-	}
-
-	var responsee productResponse
-
-	err = json.Unmarshal(body, &responsee)
-
+	var response productResponse
+	err = json.NewDecoder(resp.Body).Decode(&response)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse JSON: %w", err)
 	}
 
-	var item IItem
+	var item Item
 
-	item = IItem{
-		Name:  responsee.Name,
-		Price: responsee.Price,
+	item = Item{
+		Name:  response.Name,
+		Price: response.Price,
 	}
 
 	return &item, nil

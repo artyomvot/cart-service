@@ -1,12 +1,13 @@
 package main
 
 import (
+	"log"
 	"net/http"
 
-	"2706NewProj/internal/app/server"
-	"2706NewProj/internal/pkg/cart/productClient"
-	"2706NewProj/internal/pkg/cart/repository"
-	"2706NewProj/internal/pkg/cart/service"
+	"ProductCartService/internal/app/server"
+	"ProductCartService/internal/pkg/cart/productClient"
+	"ProductCartService/internal/pkg/cart/repository"
+	"ProductCartService/internal/pkg/cart/service"
 )
 
 func main() {
@@ -24,6 +25,8 @@ func main() {
 	http.HandleFunc("DELETE /user/{user_id}/cart/{sku_id}", srv.DeleteProduct)
 	http.HandleFunc("DELETE /user/{user_id}/cart", srv.ClearCart)
 	http.HandleFunc("GET /user/{user_id}/cart", srv.GetCart)
+
+	log.Print("Сервер запущен на порту 8082")
 
 	http.ListenAndServe(":8082", nil)
 }

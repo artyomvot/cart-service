@@ -1,8 +1,8 @@
 package service
 
 import (
-	"2706NewProj/internal/pkg/cart/model"
-	"2706NewProj/internal/pkg/cart/productClient"
+	"ProductCartService/internal/pkg/cart/model"
+	"ProductCartService/internal/pkg/cart/productClient"
 	"errors"
 	"fmt"
 )
@@ -15,7 +15,7 @@ type CartRepository interface {
 }
 
 type ProductClient interface {
-	GetProductInfo(sku int64) (*productClient.IItem, error)
+	GetProductInfo(sku int64) (*productClient.Item, error)
 }
 
 type CartService struct {
@@ -60,20 +60,23 @@ func (s *CartService) GetCart(userID int64) (*model.Cart, error) {
 	}
 
 	cart, err := s.repository.GetCart(userID)
-
 	if err != nil {
 		return nil, err
 	}
-	for i := range cart.Item {
-		var iitem *productClient.IItem
-		iitem, err := s.productClient.GetProductInfo(cart.Item[i].SkuID)
+	if cart == nil || len(cart.Item) == 0 {
+		return nil, nil
+	}
+
+	for skuID := range cart.Item {
+		var item *productClient.Item
+		item, err := s.productClient.GetProductInfo(cart.Item[skuID].SkuID)
 
 		if err != nil {
 			return nil, fmt.Errorf("failed to get product info: %w", err)
 		}
 
-		cart.Item[i].Name = iitem.Name
-		cart.Item[i].Price = iitem.Price
+		cart.Item[skuID].Name = item.Name
+		cart.Item[skuID].Price = item.Price
 
 	}
 
