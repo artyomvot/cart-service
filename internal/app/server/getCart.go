@@ -16,8 +16,8 @@ type GetCartProduct struct {
 }
 
 type GetCartResponse struct {
-	TotalPrice uint32 `json:"total_price"`
-	Product    []GetCartProduct
+	TotalPrice uint32           `json:"total_price"`
+	Product    []GetCartProduct `json:"product"`
 }
 
 func (s *Server) GetCart(w http.ResponseWriter, r *http.Request) {
