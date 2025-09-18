@@ -9,14 +9,14 @@ import (
 )
 
 type GetCartProduct struct {
-	SkuID int64
-	Count uint16
-	Name  string
-	Price uint32
+	SkuID int64  `json:"sku_id"`
+	Count uint16 `json:"count"`
+	Name  string `json:"name"`
+	Price uint32 `json:"price"`
 }
 
 type GetCartResponse struct {
-	TotalPrice uint32
+	TotalPrice uint32 `json:"total_price"`
 	Product    []GetCartProduct
 }
 
