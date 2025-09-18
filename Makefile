@@ -1,2 +1,2 @@
 run-all:
-	go run cmd/server/server.go	
+	go run ./cmd/server/server.go	

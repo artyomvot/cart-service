@@ -1,7 +1,9 @@
 package server
 
 import (
+	"ProductCartService/internal/pkg/cart/productClient"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -76,6 +78,16 @@ func (s *Server) AddProduct(w http.ResponseWriter, r *http.Request) {
 
 	err = s.cartService.AddProduct(userID, sku, addRequest.Count)
 	if err != nil {
+		if errors.Is(err, productClient.ErrNotFound) {
+			w.WriteHeader(http.StatusPreconditionFailed)
+			w.Header().Set("Content-Type", "application/json")
+			_, errOut := fmt.Fprintf(w, "{\"message\":\"Failed to add product to cart: %s\"}", err.Error())
+			if errOut != nil {
+				log.Printf("POST /user/<user_id>/cart/<sku_id> out failed: %s", errOut.Error())
+				return
+			}
+			return
+		}
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Header().Set("Content-Type", "application/json")
 		_, errOut := fmt.Fprintf(w, "{\"message\":\"Failed to add product to cart: %s\"}", err.Error())

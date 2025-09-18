@@ -8,6 +8,18 @@ import (
 	"strconv"
 )
 
+type GetCartProduct struct {
+	SkuID int64
+	Count uint16
+	Name  string
+	Price uint32
+}
+
+type GetCartResponse struct {
+	TotalPrice uint32
+	Product    []GetCartProduct
+}
+
 func (s *Server) GetCart(w http.ResponseWriter, r *http.Request) {
 	rawID := r.PathValue("user_id")
 
@@ -46,10 +58,24 @@ func (s *Server) GetCart(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	res := GetCartResponse{
+		TotalPrice: cart.TotalPrice,
+		Product:    make([]GetCartProduct, 0, len(cart.Item)),
+	}
+
+	for _, item := range cart.Item {
+		res.Product = append(res.Product, GetCartProduct{
+			SkuID: item.SkuID,
+			Count: item.Count,
+			Name:  item.Name,
+			Price: item.Price,
+		})
+	}
+
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 
-	jsonData, err := json.Marshal(cart)
+	jsonData, err := json.Marshal(res)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Header().Set("Content-Type", "application/json")

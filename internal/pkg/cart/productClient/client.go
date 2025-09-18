@@ -3,6 +3,7 @@ package productClient
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 )
@@ -36,6 +37,8 @@ type Item struct {
 	Price uint32 `json:"price"`
 }
 
+var ErrNotFound = errors.New("product not found")
+
 func (c *Client) GetProductInfo(sku int64) (*Item, error) {
 	url := fmt.Sprintf("%s/get_product", c.baseURL)
 
@@ -66,6 +69,9 @@ func (c *Client) GetProductInfo(sku int64) (*Item, error) {
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
+		if resp.StatusCode == http.StatusNotFound {
+			return nil, ErrNotFound
+		}
 		return nil, fmt.Errorf("product service returned status: %d", resp.StatusCode)
 	}
 
