@@ -49,7 +49,7 @@ func (s *CartService) DeleteProduct(userID int64, sku int64) error {
 }
 func (s *CartService) ClearCart(userID int64) error {
 	if userID < 1 {
-		return errors.New("userID and sku must be defined")
+		return errors.New("userID must be defined")
 	}
 	return s.repository.ClearCart(userID)
 }
@@ -61,7 +61,7 @@ func (s *CartService) GetCart(userID int64) (*model.Cart, error) {
 
 	cart, err := s.repository.GetCart(userID)
 	if err != nil {
-		return nil, err
+		return nil, errors.New("failed to get product from repository")
 	}
 	if cart == nil || len(cart.Item) == 0 {
 		return nil, nil
@@ -72,7 +72,7 @@ func (s *CartService) GetCart(userID int64) (*model.Cart, error) {
 		item, err := s.productClient.GetProductInfo(cart.Item[skuID].SkuID)
 
 		if err != nil {
-			return nil, fmt.Errorf("failed to get product info: %w", err)
+			return nil, errors.New("failed to get product info")
 		}
 
 		cart.Item[skuID].Name = item.Name
